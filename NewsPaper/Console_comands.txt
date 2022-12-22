@@ -1,0 +1,70 @@
+from news.models import *
+u1 = User.objects.create_user(username="John")
+Author.objects.create(authorUser=u1)
+u2 = User.objects.create_user(username="David")
+Author.objects.create(authorUser=u2)
+
+Category.objects.create(name='Nature')
+Category.objects.create(name='Weather')
+Category.objects.create(name='Technics')
+Category.objects.create(name='Cars')
+
+Post.objects.create(author=Author.objects.get(id=1), categoryType='AR', title='На грани', text='Стихийные бедствия и погодные аномалии происходят все чаще. Ураганы в США, лесные пожары в Сибири и Австралии, летние снегопады, засухи, мы уже живем с этими последствиями глобального потепления, не нужно ждать десятки лет, чтобы их заметить ') 
+Post.objects.get(id=1).postCategory.add(Category.objects.get(id=1))
+Post.objects.get(id=1).postCategory.add(Category.objects.get(id=2))
+Post.objects.create(author=Author.objects.get(id=2), categoryType='AR', title='Космический телескоп', text='Космический телескоп "Джеймс Уэбб" сделал новые фотографии "Столпов творения" - знаменитого небесного пейзажа из туманности Орел. Об этом рассказали в НАСА, сопроводив новость снимками в исполнении телескопа.')
+Post.objects.get(id=2).postCategory.add(Category.objects.get(id=3))
+Post.objects.create(author=Author.objects.get(id=2), categoryType='NW', title='Tesla', text='Tesla пустила в продажу машины со старыми аккумуляторами.Выставленные на продажу машины обладают пробегом до 1000 миль и, скорее всего, использовались для тест-драйвов или каких-то проверок, но не были ранее в руках автовладельцев.')
+Post.objects.get(id=3).postCategory.add(Category.objects.get(id=4))
+
+Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=Author.objects.get(id=2).authorUser, text='Ужас')
+Post.objects.get(id=1).like()
+Post.objects.get(id=1).like()
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=1).like()
+
+Comment.objects.create(commentPost=Post.objects.get(id=2), commentUser=Author.objects.get(id=1).authorUser, text='Завораживающе!')
+Post.objects.get(id=2).like()
+Post.objects.get(id=2).like()
+Post.objects.get(id=2).dislike()
+Comment.objects.get(id=2).like()
+
+Comment.objects.create(commentPost=Post.objects.get(id=2), commentUser=Author.objects.get(id=2).authorUser, text='А где это?')
+Post.objects.get(id=2).like()
+Comment.objects.get(id=3).like()
+Comment.objects.get(id=3).like()
+Comment.objects.get(id=3).like()
+
+Comment.objects.create(commentPost=Post.objects.get(id=3), commentUser=Author.objects.get(id=1).authorUser, text='Не критично')
+Post.objects.get(id=3).like()
+Post.objects.get(id=3).like()
+Comment.objects.get(id=4).dislike()
+
+Comment.objects.create(commentPost=Post.objects.get(id=3), commentUser=Author.objects.get(id=2).authorUser, text='Интересно.')
+Post.objects.get(id=3).dislike()
+Comment.objects.get(id=5).like()
+Comment.objects.get(id=5).dislike()
+
+Author.objects.get(id=1).update_rating()
+Author.objects.get(id=1).ratingAuthor #вывод рейтинга
+
+Author.objects.get(id=2).update_rating()
+Author.objects.get(id=2).ratingAuthor
+
+#Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта).
+bestUser = Author.objects.order_by('-ratingAuthor')[0]
+print(f'Автор лучшей статьи: {bestUser.authorUser.username}, '
+	  f'с рейтингом {bestUser.ratingAuthor}')
+
+#Вывести дату добавления лучшей статьи, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье.
+bestPost= Post.objects.order_by('-rating')[0]
+print(f"Лучшая статья создана: {bestPost.dateCreation.strftime('%Y-%m-%d')}, "
+	  f"автором {bestPost.author.authorUser.username}, "
+	  f"рейтинг статьи {bestPost.rating}, "
+	  f"с заголовком '{bestPost.title}', c превью '{bestPost.preview()}'")
+
+#Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+combestpost = bestPost.comment_set.all()
+for i in combestpost:
+	print(f"дата комментария {i.dateCreations.strftime('%Y-%m-%d')}, "
+		  f"автор {i.commentUser}, рейтинг {i.rating}, текст '{i.text}'")
